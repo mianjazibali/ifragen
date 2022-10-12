@@ -1,0 +1,6 @@
+version: "2"
+services:
+  node:
+    command: npm run start
+    environment:
+      - NODE_ENV=production

@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  node:
+    build: .
+    env_file:
+      - ./.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-db:/data/db
+
+volumes:
+  mongo-db:
