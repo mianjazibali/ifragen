@@ -1,11 +1,9 @@
 const express = require('express');
 const validate = require('express-validation');
 const controller = require('../../controllers/auth.controller');
-const oAuthLogin = require('../../middlewares/auth').oAuth;
 const {
   login,
   register,
-  oAuth,
   refresh,
   sendPasswordReset,
   passwordReset,
@@ -100,47 +98,5 @@ router.route('/send-password-reset')
 
 router.route('/reset-password')
   .post(validate(passwordReset), controller.resetPassword);
-
-/**
- * @api {post} v1/auth/facebook Facebook Login
- * @apiDescription Login with facebook. Creates a new user if it does not exist
- * @apiVersion 1.0.0
- * @apiName FacebookLogin
- * @apiGroup Auth
- * @apiPermission public
- *
- * @apiParam  {String}  access_token  Facebook's access_token
- *
- * @apiSuccess {String}  tokenType     Access Token's type
- * @apiSuccess {String}  accessToken   Authorization Token
- * @apiSuccess {String}  refreshToken  Token to get a new accessToken after expiration time
- * @apiSuccess {Number}  expiresIn     Access Token's expiration time in miliseconds
- *
- * @apiError (Bad Request 400)  ValidationError  Some parameters may contain invalid values
- * @apiError (Unauthorized 401)  Unauthorized    Incorrect access_token
- */
-router.route('/facebook')
-  .post(validate(oAuth), oAuthLogin('facebook'), controller.oAuth);
-
-/**
- * @api {post} v1/auth/google Google Login
- * @apiDescription Login with google. Creates a new user if it does not exist
- * @apiVersion 1.0.0
- * @apiName GoogleLogin
- * @apiGroup Auth
- * @apiPermission public
- *
- * @apiParam  {String}  access_token  Google's access_token
- *
- * @apiSuccess {String}  tokenType     Access Token's type
- * @apiSuccess {String}  accessToken   Authorization Token
- * @apiSuccess {String}  refreshToken  Token to get a new accpessToken after expiration time
- * @apiSuccess {Number}  expiresIn     Access Token's expiration time in miliseconds
- *
- * @apiError (Bad Request 400)  ValidationError  Some parameters may contain invalid values
- * @apiError (Unauthorized 401)  Unauthorized    Incorrect access_token
- */
-router.route('/google')
-  .post(validate(oAuth), oAuthLogin('google'), controller.oAuth);
 
 module.exports = router;
