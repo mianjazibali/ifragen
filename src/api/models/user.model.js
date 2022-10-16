@@ -160,7 +160,7 @@ userSchema.statics = {
         return { user, accessToken: user.token() };
       }
     } else {
-      err.message = 'Incorrect email or refreshToken';
+      err.message = 'Incorrect email or refresh token';
     }
     throw new APIError(err);
   },

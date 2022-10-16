@@ -32,7 +32,7 @@ module.exports = {
       email: Joi.string()
         .email()
         .required(),
-      refreshToken: Joi.string().required(),
+      token: Joi.string().required(),
     },
   },
 
@@ -55,7 +55,7 @@ module.exports = {
         .required()
         .min(6)
         .max(128),
-      resetToken: Joi.string().required(),
+      token: Joi.string().required(),
     },
   },
 };

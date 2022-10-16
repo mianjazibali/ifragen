@@ -2,19 +2,14 @@ const httpStatus = require('http-status');
 const moment = require('moment-timezone');
 const { omit } = require('lodash');
 const User = require('../models/user.model');
-const RefreshToken = require('../models/refreshToken.model');
-const PasswordResetToken = require('../models/passwordResetToken.model');
+const Token = require('../models/token.model');
 const { jwtExpirationInterval } = require('../../config/vars');
 const APIError = require('../errors/api-error');
 const emailProvider = require('../services/emails/emailProvider');
 
-/**
- * Returns a formated object with tokens
- * @private
- */
-function generateTokenResponse(user, accessToken) {
+async function generateTokenResponse(user, accessToken) {
   const tokenType = 'Bearer';
-  const refreshToken = RefreshToken.generate(user).token;
+  const { token: refreshToken } = await Token.generate(user);
   const expiresIn = moment().add(jwtExpirationInterval, 'minutes');
   return {
     tokenType,
@@ -24,16 +19,12 @@ function generateTokenResponse(user, accessToken) {
   };
 }
 
-/**
- * Returns jwt token if registration was successful
- * @public
- */
 exports.register = async (req, res, next) => {
   try {
     const userData = omit(req.body, 'role');
     const user = await new User(userData).save();
     const userTransformed = user.transform();
-    const token = generateTokenResponse(user, user.token());
+    const token = await generateTokenResponse(user, user.token());
     res.status(httpStatus.CREATED);
     return res.json({ token, user: userTransformed });
   } catch (error) {
@@ -41,14 +32,10 @@ exports.register = async (req, res, next) => {
   }
 };
 
-/**
- * Returns jwt token if valid username and password is provided
- * @public
- */
 exports.login = async (req, res, next) => {
   try {
     const { user, accessToken } = await User.findAndGenerateToken(req.body);
-    const token = generateTokenResponse(user, accessToken);
+    const token = await generateTokenResponse(user, accessToken);
     const userTransformed = user.transform();
     return res.json({ token, user: userTransformed });
   } catch (error) {
@@ -56,19 +43,15 @@ exports.login = async (req, res, next) => {
   }
 };
 
-/**
- * Returns a new jwt when given a valid refresh token
- * @public
- */
 exports.refresh = async (req, res, next) => {
   try {
-    const { email, refreshToken } = req.body;
-    const refreshObject = await RefreshToken.findOneAndRemove({
+    const { email, token } = req.body;
+    const refreshObject = await Token.findOneAndRemove({
       userEmail: email,
-      token: refreshToken,
+      token,
     });
     const { user, accessToken } = await User.findAndGenerateToken({ email, refreshObject });
-    const response = generateTokenResponse(user, accessToken);
+    const response = await generateTokenResponse(user, accessToken);
     return res.json(response);
   } catch (error) {
     return next(error);
@@ -81,7 +64,7 @@ exports.sendPasswordReset = async (req, res, next) => {
     const user = await User.findOne({ email }).exec();
 
     if (user) {
-      const passwordResetObj = await PasswordResetToken.generate(user);
+      const passwordResetObj = await Token.generate(user, { tokenType: Token.types.RESET });
       emailProvider.sendPasswordReset(passwordResetObj);
       res.status(httpStatus.OK);
       return res.json('success');
@@ -97,10 +80,9 @@ exports.sendPasswordReset = async (req, res, next) => {
 
 exports.resetPassword = async (req, res, next) => {
   try {
-    const { email, password, resetToken } = req.body;
-    const resetTokenObject = await PasswordResetToken.findOneAndRemove({
-      userEmail: email,
-      resetToken,
+    const { email, password, token } = req.body;
+    const resetTokenObject = await Token.findOneAndRemove({
+      userEmail: email, token, type: Token.types.RESET,
     });
 
     const err = {
