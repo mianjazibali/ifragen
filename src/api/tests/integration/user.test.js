@@ -43,7 +43,7 @@ describe('Users API', async () => {
         email: 'branstark@gmail.com',
         password: passwordHashed,
         name: 'Bran Stark',
-        role: 'admin',
+        role: 'ADMIN',
       },
       jonSnow: {
         email: 'jonsnow@gmail.com',
@@ -62,7 +62,7 @@ describe('Users API', async () => {
       email: 'sousa.dfs@gmail.com',
       password,
       name: 'Daniel Sousa',
-      role: 'admin',
+      role: 'ADMIN',
     };
 
     await User.deleteMany({});
@@ -392,7 +392,7 @@ describe('Users API', async () => {
 
     it('should not replace the role of the user (not admin)', async () => {
       const id = (await User.findOne({ email: dbUsers.jonSnow.email }))._id;
-      const role = 'admin';
+      const role = 'ADMIN';
 
       return request(app)
         .put(`/v1/users/${id}`)
@@ -462,7 +462,7 @@ describe('Users API', async () => {
 
     it('should not update the role of the user (not admin)', async () => {
       const id = (await User.findOne({ email: dbUsers.jonSnow.email }))._id;
-      const role = 'admin';
+      const role = 'ADMIN';
 
       return request(app)
         .patch(`/v1/users/${id}`)

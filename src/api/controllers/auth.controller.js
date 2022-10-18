@@ -1,11 +1,12 @@
 const httpStatus = require('http-status');
 const moment = require('moment-timezone');
 const { omit } = require('lodash');
+
 const User = require('../models/user.model');
 const Token = require('../models/token.model');
-const { jwtExpirationInterval } = require('../../config/vars');
 const APIError = require('../errors/api-error');
-const emailProvider = require('../services/emails/emailProvider');
+const { jwtExpirationInterval } = require('../../config/vars');
+const { sendEmail } = require('../services/emails/emailProvider');
 
 async function generateTokenResponse(user, accessToken) {
   const tokenType = 'Bearer';
@@ -23,10 +24,14 @@ exports.register = async (req, res, next) => {
   try {
     const userData = omit(req.body, 'role');
     const user = await new User(userData).save();
-    const userTransformed = user.transform();
-    const token = await generateTokenResponse(user, user.token());
+    sendEmail({
+      to: userData.email,
+      locals: {
+        userName: userData.name, actionUrl: 'https://www.google.com',
+      },
+    });
     res.status(httpStatus.CREATED);
-    return res.json({ token, user: userTransformed });
+    return res.json({ user: user.transform() });
   } catch (error) {
     return next(User.checkDuplicateEmail(error));
   }
@@ -36,8 +41,8 @@ exports.login = async (req, res, next) => {
   try {
     const { user, accessToken } = await User.findAndGenerateToken(req.body);
     const token = await generateTokenResponse(user, accessToken);
-    const userTransformed = user.transform();
-    return res.json({ token, user: userTransformed });
+
+    return res.json({ token, user: user.transform() });
   } catch (error) {
     return next(error);
   }
@@ -64,8 +69,8 @@ exports.sendPasswordReset = async (req, res, next) => {
     const user = await User.findOne({ email }).exec();
 
     if (user) {
-      const passwordResetObj = await Token.generate(user, { tokenType: Token.types.RESET });
-      emailProvider.sendPasswordReset(passwordResetObj);
+      // const passwordResetObj = await Token.generate(user, { tokenType: Token.types.RESET });
+      // emailProvider.sendPasswordReset(passwordResetObj);
       res.status(httpStatus.OK);
       return res.json('success');
     }
@@ -101,7 +106,7 @@ exports.resetPassword = async (req, res, next) => {
     const user = await User.findOne({ email: resetTokenObject.userEmail }).exec();
     user.password = password;
     await user.save();
-    emailProvider.sendPasswordChangeEmail(user);
+    // emailProvider.sendPasswordChangeEmail(user);
 
     res.status(httpStatus.OK);
     return res.json('Password Updated');

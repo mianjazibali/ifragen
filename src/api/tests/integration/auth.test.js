@@ -24,7 +24,7 @@ describe('Authentication API', () => {
       email: 'branstark@gmail.com',
       password: 'mypassword',
       name: 'Bran Stark',
-      role: 'admin',
+      role: 'ADMIN',
     };
 
     user = {

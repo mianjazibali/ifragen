@@ -3,7 +3,7 @@ const passport = require('passport');
 const User = require('../models/user.model');
 const APIError = require('../errors/api-error');
 
-const ADMIN = 'admin';
+const ADMIN = 'ADMIN';
 const LOGGED_USER = '_loggedUser';
 
 const handleJWT = (req, res, next, roles) => async (err, user, info) => {
@@ -23,7 +23,7 @@ const handleJWT = (req, res, next, roles) => async (err, user, info) => {
   }
 
   if (roles === LOGGED_USER) {
-    if (user.role !== 'admin' && req.params.userId !== user._id.toString()) {
+    if (user.role !== 'ADMIN' && req.params.userId !== user._id.toString()) {
       apiError.status = httpStatus.FORBIDDEN;
       apiError.message = 'Forbidden';
       return next(apiError);
