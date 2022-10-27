@@ -1,37 +1,19 @@
+const { omit } = require('lodash');
 const httpStatus = require('http-status');
 const moment = require('moment-timezone');
-const { omit } = require('lodash');
 
 const User = require('../models/user.model');
 const Token = require('../models/token.model');
 const APIError = require('../errors/api-error');
-const { jwtExpirationInterval } = require('../../config/vars');
-const { sendEmail } = require('../services/emails/emailProvider');
 
-async function generateTokenResponse(user, accessToken) {
-  const tokenType = 'Bearer';
-  const { token: refreshToken } = await Token.generate(user);
-  const expiresIn = moment().add(jwtExpirationInterval, 'minutes');
-  return {
-    tokenType,
-    accessToken,
-    refreshToken,
-    expiresIn,
-  };
-}
+const AuthHelper = require('../helpers/auth.helper');
+const ResponseHelper = require('../helpers/response.helper');
 
 exports.register = async (req, res, next) => {
   try {
     const userData = omit(req.body, 'role');
-    const user = await new User(userData).save();
-    sendEmail({
-      to: userData.email,
-      locals: {
-        userName: userData.name, actionUrl: 'https://www.google.com',
-      },
-    });
-    res.status(httpStatus.CREATED);
-    return res.json({ user: user.transform() });
+    const user = await AuthHelper.registerUser({ userData });
+    return res.status(httpStatus.CREATED).json({ user });
   } catch (error) {
     return next(User.checkDuplicateEmail(error));
   }
@@ -39,10 +21,20 @@ exports.register = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
-    const { user, accessToken } = await User.findAndGenerateToken(req.body);
-    const token = await generateTokenResponse(user, accessToken);
-
+    const { email, password } = req.body;
+    const { user, accessToken } = await User.findAndGenerateToken({ email, password });
+    const token = await ResponseHelper.generateTokenResponse({ user, accessToken });
     return res.json({ token, user: user.transform() });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+exports.verify = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const isVerified = await AuthHelper.verifyUser({ token });
+    return res.json({ isVerified });
   } catch (error) {
     return next(error);
   }
@@ -56,7 +48,7 @@ exports.refresh = async (req, res, next) => {
       token,
     });
     const { user, accessToken } = await User.findAndGenerateToken({ email, refreshObject });
-    const response = await generateTokenResponse(user, accessToken);
+    const response = await ResponseHelper.generateTokenResponse({ user, accessToken });
     return res.json(response);
   } catch (error) {
     return next(error);

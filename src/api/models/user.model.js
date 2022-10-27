@@ -7,6 +7,9 @@ const jwt = require('jwt-simple');
 const APIError = require('../errors/api-error');
 const { env, jwtSecret, jwtExpirationInterval } = require('../../config/vars');
 
+const ErrorHelper = require('../helpers/error.helper');
+const { ERRORS } = require('../../constants/user.constant');
+
 /**
 * User Roles
 */
@@ -46,6 +49,10 @@ const userSchema = new mongoose.Schema({
   picture: {
     type: String,
     trim: true,
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
   },
 }, {
   timestamps: true,
@@ -136,30 +143,35 @@ userSchema.statics = {
    * @param {ObjectId} id - The objectId of user.
    * @returns {Promise<User, APIError>}
    */
-  async findAndGenerateToken(options) {
-    const { email, password, refreshObject } = options;
-    if (!email) throw new APIError({ message: 'An email is required to generate a token' });
-
+  async findAndGenerateToken({ email, password, refreshObject } = {}) {
     const user = await this.findOne({ email }).exec();
-    const err = {
-      status: httpStatus.UNAUTHORIZED,
-      isPublic: true,
-    };
+    if (!user.isVerified) {
+      const message = ERRORS.LOGIN.NOT_VERIFIED;
+      throw new APIError(ErrorHelper.getErrorObject({ status: httpStatus.UNAUTHORIZED, message }));
+    }
+
     if (password) {
       if (user && await user.passwordMatches(password)) {
         return { user, accessToken: user.token() };
       }
-      err.message = 'Incorrect email or password';
-    } else if (refreshObject && refreshObject.userEmail === email) {
-      if (moment(refreshObject.expires).isBefore()) {
-        err.message = 'Invalid refresh token.';
-      } else {
-        return { user, accessToken: user.token() };
-      }
-    } else {
-      err.message = 'Incorrect email or refresh token';
+
+      const message = ERRORS.LOGIN.INCORRECT_EMAIL_PASSWORD;
+      throw new APIError(ErrorHelper.getErrorObject({ status: httpStatus.UNAUTHORIZED, message }));
     }
-    throw new APIError(err);
+
+    if (refreshObject && refreshObject.userEmail === email) {
+      if (moment(refreshObject.expires).isBefore()) {
+        const message = ERRORS.LOGIN.INVALID_REFRESH_TOKEN;
+        throw new APIError(
+          ErrorHelper.getErrorObject({ status: httpStatus.UNAUTHORIZED, message }),
+        );
+      }
+
+      return { user, accessToken: user.token() };
+    }
+
+    const message = ERRORS.LOGIN.INCORRECT_EMAIL_OR_REFRESH_TOKEN;
+    throw new APIError(ErrorHelper.getErrorObject({ status: httpStatus.UNAUTHORIZED, message }));
   },
 
   /**

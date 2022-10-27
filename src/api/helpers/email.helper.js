@@ -1,9 +1,12 @@
+const Path = require('path');
 const { toLower } = require('lodash');
 const Email = require('email-templates');
 const nodemailer = require('nodemailer');
 
-const { emailConfig } = require('../../../config/vars');
-const { types: { VERIFICATION } } = require('../../models/token.model');
+const { emailConfig } = require('../../config/vars');
+const { types: { VERIFICATION } } = require('../models/token.model');
+
+const UrlHelper = require('./url.helper');
 
 const transporter = nodemailer.createTransport({
   port: emailConfig.port,
@@ -21,13 +24,13 @@ transporter.verify((error) => {
   }
 });
 
-exports.sendEmail = async ({ to, locals }, { template = VERIFICATION } = {}) => {
+const sendEmail = async ({ to, locals }, { template = VERIFICATION } = {}) => {
   const email = new Email({
-    views: { root: __dirname },
+    views: { root: Path.join(__dirname, '../views/emails') },
     message: {
       from: emailConfig.username,
     },
-    send: true,
+    send: false,
     transport: transporter,
   });
 
@@ -39,3 +42,14 @@ exports.sendEmail = async ({ to, locals }, { template = VERIFICATION } = {}) => 
     })
     .catch(() => console.log('Error Sending Email'));
 };
+
+const sendVerificationEmail = ({ name, email, token }) => {
+  sendEmail({
+    to: email,
+    locals: {
+      userName: name, actionUrl: UrlHelper.getVerificationUrl({ token }),
+    },
+  });
+};
+
+module.exports = { sendVerificationEmail };

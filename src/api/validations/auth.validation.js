@@ -31,6 +31,13 @@ module.exports = {
     },
   },
 
+  // GET /v1/auth/verify
+  verify: {
+    params: {
+      token: Joi.string().required(),
+    },
+  },
+
   // POST /v1/auth/refresh
   refresh: {
     body: {

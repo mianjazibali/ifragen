@@ -15,4 +15,19 @@ module.exports = {
       },
     },
   },
+
+  ERRORS: {
+    REFRESH: {
+      INVALID: 'Invalid Refresh Token',
+      EXPIRED: 'Expired Refresh Token',
+    },
+    RESET: {
+      INVALID: 'Invalid Reset Token',
+      EXPIRED: 'Expired Reset Token',
+    },
+    VERIFICATION: {
+      INVALID: 'Invalid Verification Token',
+      EXPIRED: 'Expired Verification Token',
+    },
+  },
 };

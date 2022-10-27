@@ -41,7 +41,7 @@ token.statics = {
     const _token = `${userId}.${crypto.randomBytes(40).toString('hex')}`;
     const expires = moment().add(TYPES[tokenType].VALIDITY, TYPES[tokenType].UNIT).toDate();
     const ResetTokenObject = new Token({
-      userId, userEmail, token: _token, expires,
+      userId, userEmail, token: _token, type: tokenType, expires,
     });
     await ResetTokenObject.save();
     return ResetTokenObject;
