@@ -4,7 +4,7 @@ const Email = require('email-templates');
 const nodemailer = require('nodemailer');
 
 const { emailConfig } = require('../../config/vars');
-const { types: { VERIFICATION } } = require('../models/token.model');
+const { types: { RESET, VERIFICATION } } = require('../models/token.model');
 
 const UrlHelper = require('./url.helper');
 
@@ -24,7 +24,7 @@ transporter.verify((error) => {
   }
 });
 
-const sendEmail = async ({ to, locals }, { template = VERIFICATION } = {}) => {
+const sendEmail = async ({ to, template, locals }) => {
   const email = new Email({
     views: { root: Path.join(__dirname, '../views/emails') },
     message: {
@@ -46,10 +46,25 @@ const sendEmail = async ({ to, locals }, { template = VERIFICATION } = {}) => {
 const sendVerificationEmail = ({ name, email, token }) => {
   sendEmail({
     to: email,
-    locals: {
-      userName: name, actionUrl: UrlHelper.getVerificationUrl({ token }),
-    },
+    template: VERIFICATION,
+    locals: { userName: name, actionUrl: UrlHelper.getVerificationUrl({ token }) },
   });
 };
 
-module.exports = { sendVerificationEmail };
+const sendPasswordResetEmail = ({ name, email, token }) => {
+  sendEmail({
+    to: email,
+    template: RESET,
+    locals: { userName: name, actionUrl: UrlHelper.getPasswordResetUrl({ token }) },
+  });
+};
+
+const sendPasswordChangeEmail = ({ name, email }) => {
+  sendEmail({
+    to: email,
+    template: `${RESET}_CONFIRMATION`,
+    locals: { userName: name },
+  });
+};
+
+module.exports = { sendVerificationEmail, sendPasswordResetEmail, sendPasswordChangeEmail };

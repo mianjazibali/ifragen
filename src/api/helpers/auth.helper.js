@@ -1,13 +1,15 @@
+const moment = require('moment-timezone');
+const { isEmpty } = require('lodash');
 const httpStatus = require('http-status');
 
-const Token = require('../models/token.model');
 const User = require('../models/user.model');
-
-const TokenHelper = require('./token.helper');
-const EmailHelper = require('./email.helper');
+const Token = require('../models/token.model');
 const APIError = require('../errors/api-error');
-const ErrorHelper = require('./error.helper');
-const { ERRORS } = require('../../constants/user.constant');
+
+const EmailHelper = require('./email.helper');
+
+const { ERRORS: USER_ERRORS } = require('../../constants/user.constant');
+const { ERRORS: TOKEN_ERRORS } = require('../../constants/token.constant');
 
 const registerUser = async ({ userData }) => {
   const user = await new User(userData).save();
@@ -16,20 +18,49 @@ const registerUser = async ({ userData }) => {
   return user.transform();
 };
 
-const isUserVerified = async ({ userId }) => {
-  const user = await User.findOne({ _id: userId });
-  return user.isVerified;
+const verifyToken = ({ token, ERROR_TYPE }) => {
+  if (!token) {
+    throw new APIError({ status: httpStatus.BAD_REQUEST, message: ERROR_TYPE.INVALID });
+  }
+
+  if (moment().isAfter(token.expires)) {
+    throw new APIError({ status: httpStatus.UNAUTHORIZED, message: ERROR_TYPE.EXPIRED });
+  }
+
+  return true;
 };
 
 const verifyUser = async ({ token }) => {
-  const _token = await TokenHelper.findToken({ token });
-  const isVerified = await isUserVerified({ userId: _token.userId });
-  if (isVerified) {
-    const message = ERRORS.VERIFICATION.VERIFIED;
-    throw new APIError(ErrorHelper.getErrorObject({ status: httpStatus.BAD_REQUEST, message }));
-  }
-  await User.updateOne({ _id: _token.userId }, { isVerified: true });
-  return !!_token;
+  const _token = await Token.findOneAndRemove({ token, type: Token.types.VERIFICATION });
+  verifyToken({ token: _token, ERROR_TYPE: TOKEN_ERRORS.VERIFICATION });
+  return User.updateOne({ _id: _token.userId }, { isVerified: true });
 };
 
-module.exports = { registerUser, verifyUser };
+const sendPasswordReset = async ({ email }) => {
+  const user = await User.findOne({ email }).exec();
+
+  if (isEmpty(user)) {
+    throw new APIError({
+      status: httpStatus.NOT_FOUND, message: USER_ERRORS.PASSWORD_RESET.ACCOUNT_NOT_FOUND,
+    });
+  }
+
+  const { token } = await Token.generate(user, { tokenType: Token.types.RESET });
+  return EmailHelper.sendPasswordResetEmail({ name: user.name, email: user.email, token });
+};
+
+const resetPassword = async ({ email, password, token }) => {
+  const _token = await Token.findOneAndRemove({ userEmail: email, token, type: Token.types.RESET });
+  verifyToken({ token: _token, ERROR_TYPE: TOKEN_ERRORS.RESET });
+
+  const user = await User.findOne({ email: _token.userEmail }).exec();
+  user.password = password;
+  await user.save();
+
+  await EmailHelper.sendPasswordChangeEmail({ name: user.name, email: user.email });
+  return user.transform();
+};
+
+module.exports = {
+  registerUser, verifyUser, sendPasswordReset, resetPassword,
+};

@@ -6,8 +6,6 @@ const moment = require('moment-timezone');
 const jwt = require('jwt-simple');
 const APIError = require('../errors/api-error');
 const { env, jwtSecret, jwtExpirationInterval } = require('../../config/vars');
-
-const ErrorHelper = require('../helpers/error.helper');
 const { ERRORS } = require('../../constants/user.constant');
 
 /**
@@ -146,8 +144,10 @@ userSchema.statics = {
   async findAndGenerateToken({ email, password, refreshObject } = {}) {
     const user = await this.findOne({ email }).exec();
     if (!user.isVerified) {
-      const message = ERRORS.LOGIN.NOT_VERIFIED;
-      throw new APIError(ErrorHelper.getErrorObject({ status: httpStatus.UNAUTHORIZED, message }));
+      throw new APIError({
+        status: httpStatus.UNAUTHORIZED,
+        message: ERRORS.LOGIN.EMAIL_NOT_VERIFIED,
+      });
     }
 
     if (password) {
@@ -155,23 +155,25 @@ userSchema.statics = {
         return { user, accessToken: user.token() };
       }
 
-      const message = ERRORS.LOGIN.INCORRECT_EMAIL_PASSWORD;
-      throw new APIError(ErrorHelper.getErrorObject({ status: httpStatus.UNAUTHORIZED, message }));
+      throw new APIError({
+        status: httpStatus.UNAUTHORIZED,
+        message: ERRORS.LOGIN.INCORRECT_EMAIL_PASSWORD,
+      });
     }
 
     if (refreshObject && refreshObject.userEmail === email) {
       if (moment(refreshObject.expires).isBefore()) {
-        const message = ERRORS.LOGIN.INVALID_REFRESH_TOKEN;
-        throw new APIError(
-          ErrorHelper.getErrorObject({ status: httpStatus.UNAUTHORIZED, message }),
-        );
+        throw new APIError({
+          status: httpStatus.UNAUTHORIZED,
+          message: ERRORS.LOGIN.INVALID_REFRESH_TOKEN,
+        });
       }
 
       return { user, accessToken: user.token() };
     }
 
     const message = ERRORS.LOGIN.INCORRECT_EMAIL_OR_REFRESH_TOKEN;
-    throw new APIError(ErrorHelper.getErrorObject({ status: httpStatus.UNAUTHORIZED, message }));
+    throw new APIError({ status: httpStatus.UNAUTHORIZED, message });
   },
 
   /**
