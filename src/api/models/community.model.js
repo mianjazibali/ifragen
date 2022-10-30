@@ -41,6 +41,7 @@ const communitySchema = new mongoose.Schema({
   },
 }, {
   timestamps: true,
+  versionKey: false,
 });
 
 communitySchema.method({
@@ -48,7 +49,7 @@ communitySchema.method({
     const usersMap = _.keyBy(this.users, 'userId');
     const users = await User.find({ _id: { $in: _.keys(usersMap) } });
 
-    const communities = _.omit(this, ['updatedAt']);
+    const communities = _.omit(this.toJSON(), ['updatedAt']);
     communities.users = _.map(users, (user) => _.assign(user, { role: _.get(usersMap, [user._id, 'role']) }));
     return communities;
   },
@@ -60,7 +61,6 @@ communitySchema.statics = {
 
 communitySchema.set('toJSON', {
   virtuals: true,
-  versionKey: false,
   transform: (doc, ret) => _.omit(ret, ['_id', 'updatedAt']),
 });
 

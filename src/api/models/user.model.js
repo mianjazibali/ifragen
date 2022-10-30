@@ -54,6 +54,7 @@ const userSchema = new mongoose.Schema({
   },
 }, {
   timestamps: true,
+  versionKey: false,
 });
 
 /**
@@ -211,7 +212,6 @@ userSchema.statics = {
 
 userSchema.set('toJSON', {
   virtuals: true,
-  versionKey: false,
   transform: (doc, ret) => omit(ret, ['_id', 'password', 'isVerified', 'updatedAt']),
 });
 
