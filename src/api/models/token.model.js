@@ -32,6 +32,8 @@ const token = new mongoose.Schema({
     required: true,
   },
   expires: { type: Date },
+}, {
+  versionKey: false,
 });
 
 token.statics = {

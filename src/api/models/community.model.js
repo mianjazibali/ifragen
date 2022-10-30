@@ -40,6 +40,7 @@ const communitySchema = new mongoose.Schema({
   },
 }, {
   timestamps: true,
+  versionKey: false,
 });
 
 communitySchema.method({
