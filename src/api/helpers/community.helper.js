@@ -16,7 +16,7 @@ const createCommunity = async ({
     name, description, picture, isPublic, users: [{ userId, role: 'ADMIN' }],
   });
   await community.save();
-  return community.transform();
+  return community.denormalize();
 };
 
 module.exports = { fetchAllCommunities, createCommunity };

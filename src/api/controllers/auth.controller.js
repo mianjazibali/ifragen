@@ -22,7 +22,7 @@ exports.login = async (req, res, next) => {
     const { email, password } = req.body;
     const { user, accessToken } = await User.findAndGenerateToken({ email, password });
     const token = await ResponseHelper.generateTokenResponse({ user, accessToken });
-    return res.json({ token, user: user.transform() });
+    return res.json({ token, user });
   } catch (error) {
     return next(error);
   }

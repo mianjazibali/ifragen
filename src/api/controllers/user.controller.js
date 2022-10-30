@@ -20,13 +20,13 @@ exports.load = async (req, res, next, id) => {
  * Get user
  * @public
  */
-exports.get = (req, res) => res.json(req.locals.user.transform());
+exports.get = (req, res) => res.json(req.locals.user);
 
 /**
  * Get logged in user info
  * @public
  */
-exports.loggedIn = (req, res) => res.json(req.user.transform());
+exports.loggedIn = (req, res) => res.json(req.user);
 
 /**
  * Create new user
@@ -37,7 +37,7 @@ exports.create = async (req, res, next) => {
     const user = new User(req.body);
     const savedUser = await user.save();
     res.status(httpStatus.CREATED);
-    res.json(savedUser.transform());
+    res.json(savedUser);
   } catch (error) {
     next(User.checkDuplicateEmail(error));
   }
@@ -57,7 +57,7 @@ exports.replace = async (req, res, next) => {
     await user.updateOne(newUserObject, { override: true, upsert: true });
     const savedUser = await User.findById(user._id);
 
-    res.json(savedUser.transform());
+    res.json(savedUser);
   } catch (error) {
     next(User.checkDuplicateEmail(error));
   }
@@ -73,7 +73,7 @@ exports.update = (req, res, next) => {
   const user = Object.assign(req.locals.user, updatedUser);
 
   user.save()
-    .then((savedUser) => res.json(savedUser.transform()))
+    .then((savedUser) => res.json(savedUser))
     .catch((e) => next(User.checkDuplicateEmail(e)));
 };
 
@@ -84,8 +84,7 @@ exports.update = (req, res, next) => {
 exports.list = async (req, res, next) => {
   try {
     const users = await User.list(req.query);
-    const transformedUsers = users.map((user) => user.transform());
-    res.json(transformedUsers);
+    res.json(users);
   } catch (error) {
     next(error);
   }

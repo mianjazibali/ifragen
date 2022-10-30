@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const httpStatus = require('http-status');
-const { omitBy, isNil } = require('lodash');
+const { omitBy, isNil, omit } = require('lodash');
 const bcrypt = require('bcryptjs');
 const moment = require('moment-timezone');
 const jwt = require('jwt-simple');
@@ -30,12 +30,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 6,
-    maxlength: 128,
+    maxLength: 128,
   },
   name: {
     type: String,
     required: true,
-    maxlength: 128,
+    maxLength: 128,
     index: true,
     trim: true,
   },
@@ -54,7 +54,6 @@ const userSchema = new mongoose.Schema({
   },
 }, {
   timestamps: true,
-  versionKey: false,
 });
 
 /**
@@ -82,17 +81,6 @@ userSchema.pre('save', async function save(next) {
  * Methods
  */
 userSchema.method({
-  transform() {
-    const transformed = {};
-    const fields = ['id', 'name', 'email', 'picture', 'role', 'createdAt'];
-
-    fields.forEach((field) => {
-      transformed[field] = this[field];
-    });
-
-    return transformed;
-  },
-
   token() {
     const payload = {
       exp: moment().add(jwtExpirationInterval, 'minutes').unix(),
@@ -220,6 +208,12 @@ userSchema.statics = {
     return error;
   },
 };
+
+userSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: (doc, ret) => omit(ret, ['_id', 'password', 'isVerified', 'updatedAt']),
+});
 
 /**
  * @typedef User

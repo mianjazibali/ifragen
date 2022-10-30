@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
 const communitySchema = new mongoose.Schema({
   name: {
     type: String,
+    match: /^[a-zA-Z0-9-_ ]+$/,
     required: true,
     maxLength: 128,
     index: true,
@@ -40,24 +41,27 @@ const communitySchema = new mongoose.Schema({
   },
 }, {
   timestamps: true,
-  versionKey: false,
 });
 
 communitySchema.method({
-  async transform() {
+  async denormalize() {
     const usersMap = _.keyBy(this.users, 'userId');
     const users = await User.find({ _id: { $in: _.keys(usersMap) } });
 
-    const communities = this.toJSON();
-    communities.users = _.map(users, (user) => _.assign(user.transform(), { role: _.get(usersMap, [user._id, 'role']) }));
-
-    const fields = ['id', 'name', 'description', 'users', 'picture', 'isPublic'];
-    return _.pick(communities, fields);
+    const communities = _.omit(this, ['updatedAt']);
+    communities.users = _.map(users, (user) => _.assign(user, { role: _.get(usersMap, [user._id, 'role']) }));
+    return communities;
   },
 });
 
 communitySchema.statics = {
   communityRoles,
 };
+
+communitySchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: (doc, ret) => _.omit(ret, ['_id', 'updatedAt']),
+});
 
 module.exports = mongoose.model('Community', communitySchema);

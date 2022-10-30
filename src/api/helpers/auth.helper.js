@@ -15,7 +15,7 @@ const registerUser = async ({ userData }) => {
   const user = await new User(userData).save();
   const { token } = await Token.generate(user, { tokenType: Token.types.VERIFICATION });
   EmailHelper.sendVerificationEmail({ name: user.name, email: user.email, token });
-  return user.transform();
+  return user;
 };
 
 const verifyToken = ({ token, ERROR_TYPE }) => {
@@ -58,7 +58,7 @@ const resetPassword = async ({ email, password, token }) => {
   await user.save();
 
   await EmailHelper.sendPasswordChangeEmail({ name: user.name, email: user.email });
-  return user.transform();
+  return user;
 };
 
 module.exports = {
