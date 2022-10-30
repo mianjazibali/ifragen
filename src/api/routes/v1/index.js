@@ -7,6 +7,8 @@ const router = express.Router();
 
 router.get('/status', (req, res) => res.send('OK'));
 
+router.use('/uploads', express.static('./public/uploads'));
+
 router.use('/auth', authRoutes);
 
 router.use('/users', userRoutes);

@@ -14,9 +14,11 @@ module.exports = {
   // POST /v1/communities
   createCommunity: {
     body: {
-      name: Joi.string().max(128),
-      description: Joi.string(),
-      isPublic: Joi.boolean(),
+      name: Joi.string().regex(/^[a-zA-Z0-9-_ ]+$/).required().min(3)
+        .max(128),
+      description: Joi.string().required(),
+      image: Joi.string(),
+      isPublic: Joi.boolean().required(),
     },
   },
 };
