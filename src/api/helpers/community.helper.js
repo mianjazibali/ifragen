@@ -9,6 +9,11 @@ const fetchAllCommunities = ({ page = 1, perPage = 30, name = '' } = {}) => {
     .exec();
 };
 
+const getCommunity = async ({ communityId }) => {
+  const community = await Community.findOne({ _id: communityId }).exec();
+  return community.denormalize();
+};
+
 const createCommunity = async ({
   name, description, picture = '', isPublic, userId,
 }) => {
@@ -19,4 +24,4 @@ const createCommunity = async ({
   return community.denormalize();
 };
 
-module.exports = { fetchAllCommunities, createCommunity };
+module.exports = { fetchAllCommunities, getCommunity, createCommunity };

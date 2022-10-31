@@ -17,4 +17,8 @@ router
     FileController.uploadImage, CommunityController.create,
   );
 
+router
+  .route('/:communityId')
+  .get(authorize(LOGGED_USER), validate(Validation.getCommunity), CommunityController.get);
+
 module.exports = router;

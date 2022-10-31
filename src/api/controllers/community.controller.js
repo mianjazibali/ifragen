@@ -12,6 +12,16 @@ exports.list = async (req, res, next) => {
   }
 };
 
+exports.get = async (req, res, next) => {
+  try {
+    const { communityId } = req.params;
+    const community = await CommunityHelper.getCommunity({ communityId });
+    return res.json({ community });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 exports.create = async (req, res, next) => {
   try {
     const { user: { _id }, body: { name, description, isPublic }, file } = req;

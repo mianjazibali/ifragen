@@ -11,6 +11,13 @@ module.exports = {
     },
   },
 
+  // GET /v1/communities/:communityId
+  getCommunity: {
+    params: {
+      communityId: Joi.string().hex().length(24),
+    },
+  },
+
   // POST /v1/communities
   createCommunity: {
     body: {
