@@ -15,7 +15,7 @@ const getCommunity = async ({ communityId }) => {
 };
 
 const createCommunity = async ({
-  name, description, picture = '', isPublic, userId,
+  name, description, picture, isPublic, userId,
 }) => {
   const community = new Community({
     name, description, picture, isPublic, users: [{ userId, role: 'ADMIN' }],
