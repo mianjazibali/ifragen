@@ -5,7 +5,7 @@ const httpStatus = require('http-status');
 const User = require('./user.model');
 const APIError = require('../errors/api-error');
 
-const { ERRORS } = require('../constants/community.constant');
+const { CONSTANTS, ERRORS } = require('../constants/community.constant');
 
 const communityRoles = ['USER', 'MODERATOR', 'ADMIN'];
 
@@ -38,6 +38,7 @@ const communitySchema = new mongoose.Schema({
   picture: {
     type: String,
     trim: true,
+    default: CONSTANTS.IMAGE.COMMUNITY,
   },
   isPublic: {
     type: Boolean,

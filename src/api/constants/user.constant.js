@@ -1,4 +1,10 @@
 module.exports = {
+  CONSTANTS: {
+    IMAGE: {
+      USER: 'user.png',
+    },
+  },
+
   ERRORS: {
     LOGIN: {
       INCORRECT_EMAIL_PASSWORD: 'Incorrect Email Or Password',
