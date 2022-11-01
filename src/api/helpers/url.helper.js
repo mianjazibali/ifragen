@@ -1,5 +1,5 @@
 const path = require('path');
-const { CONSTANTS: { BASE_URL } } = require('../../constants/url.constant');
+const { CONSTANTS: { BASE_URL } } = require('../constants/url.constant');
 
 const getVerificationUrl = ({ token }) => path.join(BASE_URL, 'auth', 'verify', token);
 

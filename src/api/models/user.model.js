@@ -6,7 +6,7 @@ const moment = require('moment-timezone');
 const jwt = require('jwt-simple');
 const APIError = require('../errors/api-error');
 const { env, jwtSecret, jwtExpirationInterval } = require('../../config/vars');
-const { ERRORS } = require('../../constants/user.constant');
+const { ERRORS } = require('../constants/user.constant');
 
 /**
 * User Roles

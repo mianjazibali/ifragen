@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const crypto = require('crypto');
 const moment = require('moment-timezone');
 
-const { CONSTANTS: { TYPES } } = require('../../constants/token.constant');
+const { CONSTANTS: { TYPES } } = require('../constants/token.constant');
 
 const types = {
   REFRESH: 'REFRESH',

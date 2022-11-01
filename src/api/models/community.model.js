@@ -5,7 +5,7 @@ const httpStatus = require('http-status');
 const User = require('./user.model');
 const APIError = require('../errors/api-error');
 
-const { ERRORS } = require('../../constants/community.constant');
+const { ERRORS } = require('../constants/community.constant');
 
 const communityRoles = ['USER', 'MODERATOR', 'ADMIN'];
 

@@ -8,8 +8,8 @@ const APIError = require('../errors/api-error');
 
 const EmailHelper = require('./email.helper');
 
-const { ERRORS: USER_ERRORS } = require('../../constants/user.constant');
-const { ERRORS: TOKEN_ERRORS } = require('../../constants/token.constant');
+const { ERRORS: USER_ERRORS } = require('../constants/user.constant');
+const { ERRORS: TOKEN_ERRORS } = require('../constants/token.constant');
 
 const registerUser = async ({ userData }) => {
   const user = await new User(userData).save();
