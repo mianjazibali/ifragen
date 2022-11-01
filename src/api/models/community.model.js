@@ -51,15 +51,18 @@ const communitySchema = new mongoose.Schema({
 
 communitySchema.method({
   async denormalize() {
+    const communities = this.toJSON();
+    if (!communities.isPublic) {
+      return _.assign(communities, {
+        users: _.map(this.users, ({ userId, role }) => ({ id: userId, role })),
+      });
+    }
+
     const usersMap = _.keyBy(this.users, 'userId');
     const users = await User.find({ _id: { $in: _.keys(usersMap) } });
-
-    const communities = this.toJSON();
-
-    if (communities.isPublic) {
-      communities.users = _.map(users, (user) => _.assign(user, { role: _.get(usersMap, [user._id, 'role']) }));
-    }
-    return communities;
+    return _.assign(communities, {
+      users: _.map(users, (user) => _.assign(user, { role: _.get(usersMap, [user.id, 'role']) })),
+    });
   },
 });
 
