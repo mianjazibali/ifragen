@@ -8,6 +8,8 @@ const { authorize, LOGGED_USER } = require('../../middlewares/auth');
 
 const router = express.Router();
 
+router.param('communityId', CommunityController.load);
+
 router
   .route('/')
   .get(authorize(LOGGED_USER), validate(Validation.listCommunities), CommunityController.list)
@@ -19,6 +21,6 @@ router
 
 router
   .route('/:communityId')
-  .get(authorize(LOGGED_USER), validate(Validation.getCommunity), CommunityController.get);
+  .get(authorize(LOGGED_USER), CommunityController.get);
 
 module.exports = router;

@@ -1,4 +1,17 @@
+const Community = require('../models/community.model');
+
 const CommunityHelper = require('../helpers/community.helper');
+
+exports.load = async (req, res, next) => {
+  try {
+    const { communityId } = req.params;
+    const community = await Community.get({ communityId });
+    req.locals = { community };
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+};
 
 exports.list = async (req, res, next) => {
   try {
@@ -12,15 +25,7 @@ exports.list = async (req, res, next) => {
   }
 };
 
-exports.get = async (req, res, next) => {
-  try {
-    const { communityId } = req.params;
-    const community = await CommunityHelper.getCommunity({ communityId });
-    return res.json({ community });
-  } catch (error) {
-    return next(error);
-  }
-};
+exports.get = (req, res) => res.json(req.locals.community);
 
 exports.create = async (req, res, next) => {
   try {

@@ -1,7 +1,11 @@
 const _ = require('lodash');
 const mongoose = require('mongoose');
+const httpStatus = require('http-status');
 
 const User = require('./user.model');
+const APIError = require('../errors/api-error');
+
+const { ERRORS } = require('../../constants/community.constant');
 
 const communityRoles = ['USER', 'MODERATOR', 'ADMIN'];
 
@@ -49,14 +53,30 @@ communitySchema.method({
     const usersMap = _.keyBy(this.users, 'userId');
     const users = await User.find({ _id: { $in: _.keys(usersMap) } });
 
-    const communities = _.omit(this.toJSON(), ['updatedAt']);
-    communities.users = _.map(users, (user) => _.assign(user, { role: _.get(usersMap, [user._id, 'role']) }));
+    const communities = this.toJSON();
+
+    if (communities.isPublic) {
+      communities.users = _.map(users, (user) => _.assign(user, { role: _.get(usersMap, [user._id, 'role']) }));
+    }
     return communities;
   },
 });
 
 communitySchema.statics = {
   communityRoles,
+
+  async get({ communityId }) {
+    let community;
+    if (mongoose.Types.ObjectId.isValid(communityId)) {
+      community = await this.findById(communityId).exec();
+    }
+
+    if (!community) {
+      throw new APIError({ message: ERRORS.GET.COMMUNITY_NOT_FOUND, status: httpStatus.NOT_FOUND });
+    }
+
+    return community.denormalize();
+  },
 };
 
 communitySchema.set('toJSON', {
