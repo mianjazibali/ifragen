@@ -9,10 +9,7 @@ const fetchAllCommunities = ({ page = 1, perPage = 30, name = '' } = {}) => {
     .exec();
 };
 
-const getCommunity = async ({ communityId }) => {
-  const community = await Community.findOne({ _id: communityId }).exec();
-  return community.denormalize();
-};
+const getCommunity = async ({ communityId }) => Community.findOne({ _id: communityId }).exec();
 
 const createCommunity = async ({
   name, description, picture, isPublic, userId,
@@ -20,8 +17,7 @@ const createCommunity = async ({
   const community = new Community({
     name, description, picture, isPublic, users: [{ userId, role: 'ADMIN' }],
   });
-  await community.save();
-  return community.denormalize();
+  return community.save();
 };
 
 module.exports = { fetchAllCommunities, getCommunity, createCommunity };

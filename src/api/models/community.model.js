@@ -51,16 +51,9 @@ const communitySchema = new mongoose.Schema({
 
 communitySchema.method({
   async denormalize() {
-    const communities = this.toJSON();
-    if (!communities.isPublic) {
-      return _.assign(communities, {
-        users: _.map(this.users, ({ userId, role }) => ({ id: userId, role })),
-      });
-    }
-
     const usersMap = _.keyBy(this.users, 'userId');
     const users = await User.find({ _id: { $in: _.keys(usersMap) } });
-    return _.assign(communities, {
+    return _.assign(this, {
       users: _.map(users, (user) => _.assign(user, { role: _.get(usersMap, [user.id, 'role']) })),
     });
   },
@@ -79,13 +72,13 @@ communitySchema.statics = {
       throw new APIError({ message: ERRORS.GET.COMMUNITY_NOT_FOUND, status: httpStatus.NOT_FOUND });
     }
 
-    return community.denormalize();
+    return community;
   },
 };
 
 communitySchema.set('toJSON', {
   virtuals: true,
-  transform: (doc, ret) => _.omit(ret, ['_id', 'updatedAt']),
+  transform: (doc, ret) => _.omit(ret, ['_id', 'users', 'updatedAt']),
 });
 
 module.exports = mongoose.model('Community', communitySchema);
