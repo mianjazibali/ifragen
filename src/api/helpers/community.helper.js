@@ -1,3 +1,4 @@
+const { omitBy, isNil } = require('lodash');
 const Community = require('../models/community.model');
 
 // eslint-disable-next-line arrow-body-style
@@ -20,4 +21,15 @@ const createCommunity = async ({
   return community.save();
 };
 
-module.exports = { fetchAllCommunities, getCommunity, createCommunity };
+const updateCommunity = async ({ communityId }, {
+  name, description, picture, isPublic,
+// eslint-disable-next-line arrow-body-style
+} = {}) => {
+  return Community.findOneAndUpdate({ _id: communityId }, omitBy({
+    name, description, picture, isPublic,
+  }, isNil), { returnOriginal: false });
+};
+
+module.exports = {
+  fetchAllCommunities, getCommunity, createCommunity, updateCommunity,
+};

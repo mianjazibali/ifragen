@@ -1,17 +1,4 @@
-const Community = require('../models/community.model');
-
 const CommunityHelper = require('../helpers/community.helper');
-
-exports.load = async (req, res, next) => {
-  try {
-    const { communityId } = req.params;
-    const community = await Community.get({ communityId });
-    req.locals = { community };
-    return next();
-  } catch (error) {
-    return next(error);
-  }
-};
 
 exports.list = async (req, res, next) => {
   try {
@@ -34,6 +21,20 @@ exports.create = async (req, res, next) => {
       name, description, picture: file && file.filename, isPublic, userId: _id,
     });
     return res.json({ community });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+exports.update = async (req, res, next) => {
+  try {
+    const { locals: { community }, body: { name, description, isPublic }, file } = req;
+    const _community = await CommunityHelper.updateCommunity({
+      communityId: community.id,
+    }, {
+      name, description, picture: file, isPublic,
+    });
+    return res.json({ community: _community });
   } catch (error) {
     return next(error);
   }

@@ -53,7 +53,7 @@ communitySchema.method({
   async denormalize() {
     const usersMap = _.keyBy(this.users, 'userId');
     const users = await User.find({ _id: { $in: _.keys(usersMap) } });
-    return _.assign(this, {
+    return _.assign(this.toJSON(), {
       users: _.map(users, (user) => _.assign(user, { role: _.get(usersMap, [user.id, 'role']) })),
     });
   },

@@ -5,22 +5,25 @@ const CommunityController = require('../../controllers/community.controller');
 const FileController = require('../../controllers/file.controller');
 const Validation = require('../../validations/community.validation');
 const { authorize, LOGGED_USER } = require('../../middlewares/auth');
+const CommunityMiddleware = require('../../middlewares/community');
 
 const router = express.Router();
 
-router.param('communityId', CommunityController.load);
+router.param('communityId', CommunityMiddleware.load);
 
 router
   .route('/')
-  .get(authorize(LOGGED_USER), validate(Validation.listCommunities), CommunityController.list)
+  .all(authorize(LOGGED_USER))
+  .get(validate(Validation.listCommunities), CommunityController.list)
   .post(
-    authorize(LOGGED_USER),
     validate(Validation.createCommunity),
     FileController.uploadImage, CommunityController.create,
   );
 
 router
   .route('/:communityId')
-  .get(authorize(LOGGED_USER), CommunityController.get);
+  .all(authorize(LOGGED_USER))
+  .get(CommunityController.get)
+  .put(CommunityMiddleware.canUpdate, CommunityController.update);
 
 module.exports = router;
